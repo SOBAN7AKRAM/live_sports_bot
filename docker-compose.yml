@@ -1,0 +1,43 @@
+
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: $oban7t;
+      POSTGRES_DB: live_sports_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  web:
+    build: ./web  # assumes you have a Dockerfile in the ./web directory for Django
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./web:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_HOST=db
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=$oban7t;
+      - DATABASE_NAME=live_sports_db
+    depends_on:
+      - db
+
+  bot:
+    build: ./bot  # assumes you have a Dockerfile in the ./bot directory for your Python bot
+    command: python bot.py
+    volumes:
+      - ./bot:/app
+    environment:
+      - DATABASE_HOST=db
+      - DATABASE_USER=myuser
+      - DATABASE_PASSWORD=mypassword
+      - DATABASE_NAME=mydatabase
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
