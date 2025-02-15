@@ -32,14 +32,14 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'bot_app',
-    # 'bot_app.apps.BotAppConfig',s
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'celery',
+    'bot_app',
 ]
 
 MIDDLEWARE = [
@@ -94,6 +94,16 @@ DATABASES = {
     }
 }
 
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_TIMEZONE = 'UTC'
+
+CELERY_BEAT_SCHEDULE = {
+    'fetch-and-process-matches-every-minute': {
+        'task': 'bot_app.tasks.fetch_and_process_matches',  # adjust to your actual task path
+        'schedule': 60.0,  # 60 seconds = 1 minute
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
