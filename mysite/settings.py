@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -99,9 +100,21 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_TIMEZONE = 'UTC'
 
 CELERY_BEAT_SCHEDULE = {
-    'fetch-and-process-matches-every-minute': {
-        'task': 'bot_app.tasks.fetch_and_process_matches',  # adjust to your actual task path
-        'schedule': 60.0,  # 60 seconds = 1 minute
+    'fetch-and-process-live-basketball-every-minute': {
+        'task': 'bot_app.tasks.fetch_and_process_live_basketball',  # adjust to your actual task path
+        'schedule': 120.0,  # 60 seconds = 1 minute
+    },
+    'fetch-and-process-upcoming-basketball-hour-before-next-day': {
+        'task': 'bot_app.tasks.fetch_and_process_upcoming_basketball',  # adjust to your actual task path
+        'schedule': 600.0,
+    },
+    'fetch-and-process-tennis-every-two-minute': {
+        'task': 'bot_app.tasks.fetch_and_process_live_tennis',  # adjust to your actual task path
+        'schedule': 120.0,  # 60 seconds = 1 minute
+    },
+    'fetch-and-process-upcoming-tennis-hour-before-next-day': {
+        'task': 'bot_app.tasks.fetch_and_process_upcoming_tennis',  # adjust to your actual task path
+        'schedule': 600.0,
     },
 }
 
