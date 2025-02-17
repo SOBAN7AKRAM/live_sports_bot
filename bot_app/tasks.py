@@ -27,24 +27,32 @@ def fetch_and_process_live_basketball():
     Task to fetch and process matches.
     Task will run every minute.
     """
-    print("started")
+    print("started fetching live basketball")
+    
     sport_id = "basketball"
     url = f"https://www.sofascore.com/api/v1/sport/{sport_id}/events/live"
     matches = fetch_matches(url, sport_id)
-    print("basketball matches fetched ", len(matches))
+    print("basketball live matches fetched ", len(matches))
+    
     process_favourites(matches)
-    print("basketball matches processed")
+    print("basketball live matches processed")
     
 @shared_task
 def fetch_and_process_upcoming_basketball():
     """
     Task to fetch upcoming matches before 1 hour of the next day.
     """
+    
+    print("Started fetching upcoming basketball")
+    
     sport_id = "basketball"
     tomorrow = datetime.now().strftime("%Y-%m-%d")
     url = f"https://www.sofascore.com/api/v1/sport/{sport_id}/scheduled-events/{tomorrow}"
     matches = fetch_matches(url, sport_id)
+    print("Basketball upcoming matches fetched", len(matches))
+    
     process_favourites(matches)
+    print("Basketball upcoming matches processed")
     
 @shared_task
 def fetch_and_process_live_tennis():
@@ -52,24 +60,31 @@ def fetch_and_process_live_tennis():
     Task to fetch and process matches.
     Task will run every minute.
     """
-    print("started tennis")
+    print("started fetching live tennis")
+    
     sport_id = "tennis"
     url = f"https://www.sofascore.com/api/v1/sport/{sport_id}/events/live"
     matches = fetch_matches(url, sport_id)
-    print("tennis matches fetched ", len(matches))
+    print("tennis matches live fetched ", len(matches))
+    
     process_favourites(matches)
-    print("tennis matches processed")
+    print("tennis matches live processed")
     
 @shared_task
 def fetch_and_process_upcoming_tennis():
     """
     Task to fetch upcoming matches before 1 hour of the next day.
     """
+    print("Started fetching upcoming tennis matches")
+    
     sport_id = "tennis"
     tomorrow = datetime.now().strftime("%Y-%m-%d")
     url = f"https://www.sofascore.com/api/v1/sport/{sport_id}/scheduled-events/{tomorrow}"
     matches = fetch_matches(url, sport_id)
+    print("Upcoming tennis matched fetched")
+    
     process_favourites(matches)
+    print("Upcoming tennis matches processed")
     
 # @shared_task
 # def fetch_and_process_handball():
@@ -114,8 +129,8 @@ def fetch_matches(url, sport_id):
         match["away_team_name"] = event.get("awayTeam").get("name")
         match["home_team_id"] = event.get("homeTeam").get("id")
         match["away_team_id"] = event.get("awayTeam").get("id")
-        match["home_score"] = event.get("homeScore").get("period1", 0)
-        match["away_score"] = event.get("awayScore").get("period1", 0) 
+        match["home_score"] = event.get("homeScore")
+        match["away_score"] = event.get("awayScore")
             
         matches.append(match)
 
@@ -191,12 +206,12 @@ def process_single_match(match):
             
             # Check if favourite is losing
             if stored_data["favourite"] == "home":
-                if match["home_score"] < match["away_score"]:
+                if match["home_score"].get("current") < match["away_score"].get("current"):
                     message = f"Favourite {match['home_team_name']} is losing at halftime."
                     send_alert(match, stored_data, message)
                     
             elif stored_data["favourite"] == "away":
-                if match["away_score"] < match["home_score"]:
+                if match["away_score"].get("current") < match["home_score"].get("current"):
                     message = f"Favourite {match['away_team_name']} is losing at halftime."
                     send_alert(match, stored_data)
                     
@@ -210,12 +225,12 @@ def process_single_match(match):
             
             # check if favourite is losing
             if stored_data["favourite"] == "home":
-                if match["home_score"] < match["away_score"]:
+                if match["home_score"].get("period1") < match["away_score"].get("period1"):
                     message = f"Favourite {match['home_team_name']} lost the first set."
                     send_alert(match, stored_data, message)
                     
             elif stored_data["favourite"] == "away":
-                if match["away_score"] < match["home_score"]:
+                if match["away_score"].get("period1") < match["home_score"].get("period1"):
                     message = f"Favourite {match['away_team_name']} lost the first set."
                     send_alert(match, stored_data, message)
                     
